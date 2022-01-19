@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/qiliangliu/ChatRoom/common/message"
+	"github.com/qiliangliu/ChatRoom/common/utils"
 	"net"
 )
 
@@ -52,18 +53,21 @@ func login(userId int, userPwd string) (err error) {
 		return
 	}
 
-	//fmt.Println("客户端发送消息成功, 发送长度", len(data))
-	//fmt.Println("发送内容：", string(data))
+	fmt.Println("客户端发送消息成功, 发送长度", len(data))
+	fmt.Println("发送内容：", string(data))
 
 	//发送消息本身
 	n, err = conn.Write(data)
-	if  n != int(pkgLen) || err != nil {
+	if n != int(pkgLen) || err != nil {
 		fmt.Println("conn.Write data err: ", err)
 		return
 	}
 
 	//这里还需要处理服务器的相应消息
-	mes, err = readPkg(conn)
+	tf := &utils.Transfer{
+		Conn: conn,
+	}
+	mes, err = tf.ReadPkg()
 	if err != nil {
 		fmt.Println("readPkg(conn) err: ", err)
 		return
