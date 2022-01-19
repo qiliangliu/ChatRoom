@@ -39,20 +39,14 @@ func main() {
 		}
 
 		if key == 1 {
-
 			fmt.Println("\t\t\t请输入用户账号")
 			fmt.Scanf("%d\n", &userId)
 			fmt.Println("\t\t\t请输入用户密码")
-			fmt.Scanf("%d\n", &userPwd)
+			fmt.Scanf("%s\n", &userPwd)
 			//把登录写在另一个文件里面
-			err := login(userId, userPwd)
-			if err != nil {
-				fmt.Println("\t\t\t登录失败")
-			} else {
-				fmt.Println("\t\t\t登录成功")
-			}
+			_ = login(userId, userPwd)
 
-		} else  {
+		} else {
 
 			fmt.Println("\t\t\t进行其他操作")
 		}
