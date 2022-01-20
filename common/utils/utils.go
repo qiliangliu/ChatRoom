@@ -28,6 +28,8 @@ func (this *Transfer) ReadPkg() (mes message.Message, err error) {
 		return
 	}
 	//成功读取数据，但是我们要把数据反序列化后得到message.Message
+	fmt.Println("服务端收到消息成功, 收到长度", pkgLen)
+	fmt.Println("收到内容：", string(this.Buf[:pkgLen]))
 	err = json.Unmarshal(this.Buf[:pkgLen], &mes) //注意这里要填&mes的地址
 	if err != nil {
 		fmt.Println("json.Unmarshal err: ", err)
