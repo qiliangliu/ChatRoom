@@ -10,6 +10,8 @@ import (
 var userId int
 //用户的密码
 var userPwd string
+//用户名
+var userName string
 
 func main() {
 	//接受用户的操作信息
@@ -35,6 +37,15 @@ func main() {
 			_ = userProcessor.Login(userId, userPwd)
 		case 2:
 			fmt.Println("\t\t\t注册用户")
+			fmt.Println("\t\t\t请输入用户账号")
+			fmt.Scanf("%d\n", &userId)
+			fmt.Println("\t\t\t请输入用户密码")
+			fmt.Scanf("%s\n", &userPwd)
+			fmt.Println("\t\t\t请输入用户名")
+			fmt.Scanf("%s\n", &userName)
+			userProcessor := &processor.UserProcessor {
+			}
+			_ = userProcessor.Register(userId, userPwd, userName)
 		case 3:
 			fmt.Println("\t\t\t退出系统")
 			os.Exit(0)

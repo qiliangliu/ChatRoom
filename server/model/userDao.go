@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/qiliangliu/ChatRoom/common/message"
 )
 
 //创建一个全局的userdao，一个服务器只要一个线程池操作对象就可以了, 在mian中被初始化
@@ -65,3 +66,28 @@ func (this *UserDao) Login(userId int, userPwd string) (user *User, err error) {
 	}
 	return
 }
+
+func (this *UserDao) Register(user *message.User) (err error) {
+	//先从UserDao链接的线程池中取出一根链接
+	conn := this.pool.Get()
+	defer conn.Close()
+	_, err = this.getUserById(conn, user.UserId)
+	if err == nil {
+		err = ERROR_USER_EXIST
+		return
+	}
+	//这时证明用户是不存在的，接下来我们把数据放入到redis中去
+	data, err := json.Marshal(user)
+	if err != nil {
+		return
+	}
+
+	_, err = conn.Do("hset", "Users", user.UserId, string(data))
+	if err != nil {
+		fmt.Println("保存注册用户失败 error = ", err)
+		return
+	}
+
+	return
+}
+

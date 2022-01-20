@@ -24,6 +24,10 @@ func (this *Controler) ServerProcessMes(mes *message.Message) (err error) {
 		err = userProcessor.ServerProcessLogin(mes)
 	case message.RegisterMesType:
 		//处理注册的函数
+		userProcessor := &processor.UserProcessor{
+			Conn: this.Conn,
+		}
+		err = userProcessor.ServerProcessRegister(mes)
 	default:
 		fmt.Println("消息类型不存在，无法处理")
 	}
