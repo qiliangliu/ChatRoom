@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/qiliangliu/ChatRoom/common/message"
 	"github.com/qiliangliu/ChatRoom/common/utils"
+	"github.com/qiliangliu/ChatRoom/server/model"
 	"net"
 )
 
@@ -15,7 +16,6 @@ type UserProcessor struct {
 //serverProcessLogin 专门处理登录请求函数
 func (this *UserProcessor) ServerProcessLogin(mes *message.Message) (err error) {
 	//1. 先从mes中取出mes.Data，然后反序列求出LoginMes
-
 
 	var loginMes message.LoginMes
 	err = json.Unmarshal([]byte(mes.Data), &loginMes)
@@ -28,14 +28,28 @@ func (this *UserProcessor) ServerProcessLogin(mes *message.Message) (err error) 
 	resMes.Type = message.LoginResMesType
 	//2. 再声明一个loginResMes, 用在做间接封装用
 	var loginResMes message.LoginResMes
-	//3. 先把用户账号和密码写死，方便写代码
 	fmt.Println("账号：", loginMes.UserId)
 	fmt.Println("密码：", loginMes.UserPwd)
-	if loginMes.UserId == 1 && loginMes.UserPwd == "1" {
-		loginResMes.Code = 100
+
+	//使用model.MyUserDao到redis去验证
+	user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.UserPwd)
+	if err != nil {
+		if err == model.ERROR_USER_NOT_EXIST {
+			loginResMes.Code = 200		//用户不存在
+			loginResMes.Error = err.Error()
+		} else if err == model.ERROR_USER_EXIST {
+			loginResMes.Code = 300		//用户已经存在
+			loginResMes.Error = err.Error()
+		} else if err == model.ERROR_USER_PWD {
+			loginResMes.Code = 400		//密码错误
+			loginResMes.Error = err.Error()
+		} else {
+			loginResMes.Code = 500		//未知错误
+			loginResMes.Error = "服务器内部错误"
+		}
 	} else {
-		loginResMes.Code = 200
-		loginResMes.Error = "该用户不存在，请注册再使用"
+		loginResMes.Code = 100
+		fmt.Println(user, "登录成功")
 	}
 
 	//4. longinResMes 序列化，然后服务器发送响应消息

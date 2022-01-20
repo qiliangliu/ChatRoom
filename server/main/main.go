@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net"
+	"time"
+	"github.com/qiliangliu/ChatRoom/server/model"
 )
 
 func process(conn net.Conn) {
@@ -14,6 +16,13 @@ func process(conn net.Conn) {
 		Conn : conn,
 	}
 	_ = mainControl.MainControl()
+}
+
+func init() {
+	//赋值pool
+	initPool("localhost:6379", 16, 0, 300 * time.Second)
+	//利用pool给MyUserDao赋值
+	model.InitUserDao(pool)
 }
 
 func main() {
