@@ -11,6 +11,7 @@ import (
 
 type UserProcessor struct {
 	Conn net.Conn
+	UserId int
 }
 
 //serverProcessLogin 专门处理登录请求函数
@@ -50,6 +51,13 @@ func (this *UserProcessor) ServerProcessLogin(mes *message.Message) (err error) 
 	} else {
 		loginResMes.Code = 100
 		fmt.Println(user, "登录成功")
+		//把当前用户加到OnlineUser中去
+		this.UserId = loginMes.UserId
+		userMan.onlineUsers[this.UserId] = this
+		//遍历OnlineUsers把在的人放到UserList中去
+		for id, _ := range userMan.onlineUsers {
+			loginResMes.UserList = append(loginResMes.UserList, id)
+		}
 	}
 
 	//4. longinResMes 序列化，然后服务器发送响应消息
@@ -71,6 +79,12 @@ func (this *UserProcessor) ServerProcessLogin(mes *message.Message) (err error) 
 		Conn: this.Conn,
 	}
 	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("server tf.WritePkg error: ", err)
+	}
+
+	fmt.Println("服务器推送用户上线消息")
+	this.NotifyOtherOnlineUser(this.UserId)
 
 	return
 }
@@ -134,4 +148,43 @@ func (this *UserProcessor) ServerProcessRegister(mes *message.Message) (err erro
 	}
 	err = tf.WritePkg(data)
 	return
+}
+
+//userId 用户通知其他用户，他上线了
+func (this *UserProcessor) NotifyOtherOnlineUser(userId int) {
+	for id, up :=  range userMan.onlineUsers {
+		if id == userId {
+			continue
+		}
+		//开始写一个通知方法
+		var mes message.Message
+		mes.Type = message.NotifyUserStatusMesType
+		var notifyUserStatus message.NotifyUserStatusMes
+		notifyUserStatus.UserId = userId
+		notifyUserStatus.Status = message.UserOnline
+		data, err := json.Marshal(notifyUserStatus)
+		if err != nil {
+			fmt.Println("json.Marshal error: ", err)
+			return
+		}
+		mes.Data = string(data)
+		data, err = json.Marshal(mes)
+		if err != nil {
+			fmt.Println("json.Marshal error: ", err)
+			return
+		}
+		up.NotifyMeOnline(userId, data)
+	}
+}
+
+func (this *UserProcessor) NotifyMeOnline(userId int, data []byte) {
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+	fmt.Println("打印：链接conn：", tf.Conn)
+	err := tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("NotifyMeOnline error: ", err)
+		return
+	}
 }
