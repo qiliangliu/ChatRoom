@@ -1,7 +1,9 @@
 package processor
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/qiliangliu/ChatRoom/common/message"
 	"github.com/qiliangliu/ChatRoom/common/utils"
 	"net"
 	"os"
@@ -27,6 +29,7 @@ func showmenu() {
 		switch key {
 		case 1:
 			fmt.Println("\t\t\t1 显示在线列表")
+			outputOnlineUser()
 		case 2:
 			fmt.Println("\t\t\t2 发送消息")
 		case 3:
@@ -48,11 +51,25 @@ func acceptServerMes(Conn net.Conn) {
 	for {
 		fmt.Println("客户端正在等待读取服务器发送的消息")
 		mes, err := tf.ReadPkg()
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$\n")
 		if err != nil {
 			fmt.Println("tf.ReadPkg() error: ", err)
 			return
 		}
 		//成功读取到消息，之后应该对消的内容进行相应的处理
-		fmt.Println("mes = %v", mes)
+		//fmt.Println("mes = %v", mes)
+		switch mes.Type {
+		case message.NotifyUserStatusMesType: //有人上线了
+			var notifyUserStatusMes message.NotifyUserStatusMes
+			err = json.Unmarshal([]byte(mes.Data), &notifyUserStatusMes)
+			if err != nil {
+				fmt.Println("json.Unmarshal error: ", err)
+				return
+			}
+			updateUserStatus(&notifyUserStatusMes)
+			outputOnlineUser()
+		default:
+			fmt.Println("服务器端返回了未知的消息类型")
+		}
 	}
 }

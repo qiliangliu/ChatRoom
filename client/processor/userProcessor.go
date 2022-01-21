@@ -11,7 +11,8 @@ import (
 )
 
 type UserProcessor struct {
-	//暂时不需要内容
+	Conn   net.Conn
+	UserId int
 }
 
 //实现客户端登录
@@ -91,8 +92,20 @@ func (this *UserProcessor) Login(userId int, userPwd string) (err error) {
 		return
 	}
 	//根据响应消息，客户端做出响应的显示
-	if loginResMes.Code == 100 {			//登录成功我们循环显示二级菜单
+	if loginResMes.Code == 100 { //登录成功我们循环显示二级菜单
 		fmt.Println("登录成功")
+		fmt.Println("当前在线用户列表如下：")
+		for _, v := range loginResMes.UserList {
+			fmt.Println("用户id：\t", v)
+			//登录成功后，我们初始化客户端维护的在线用户表onlineUser
+			user := &message.User{
+				UserId:     v,
+				UserStatus: message.UserOnline,
+			}
+			onlineUsers[v] = user
+		}
+		fmt.Println("###########################\n")
+
 		go acceptServerMes(conn)
 		showmenu()
 	} else {
@@ -121,7 +134,6 @@ func (this *UserProcessor) Register(userId int, userPwd string, userName string)
 	registerMes.User.UserId = userId
 	registerMes.User.UserPwd = userPwd
 	registerMes.User.UserName = userName
-
 
 	//讲registerMes 进行序列化
 	data, err := json.Marshal(registerMes)
@@ -181,7 +193,7 @@ func (this *UserProcessor) Register(userId int, userPwd string, userName string)
 		return
 	}
 	//根据响应消息，客户端做出响应的显示
-	if registerResMes.Code == 110 {			//登录成功我们循环显示二级菜单
+	if registerResMes.Code == 110 { //登录成功我们循环显示二级菜单
 		fmt.Println("注册成功")
 		os.Exit(0)
 	} else {
