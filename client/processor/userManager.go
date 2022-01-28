@@ -2,11 +2,13 @@ package processor
 
 import (
 	"fmt"
+	"github.com/qiliangliu/ChatRoom/client/model"
 	"github.com/qiliangliu/ChatRoom/common/message"
 )
 
 //客户端要维护的在线用户map
 var onlineUsers map[int]*message.User = make(map[int]*message.User, 15)
+var CurUser model.CurUser		//用户登录成功以后对其进行初始化
 
 //编写一个方法，处理返回的NotifyUserStatusMes
 func updateUserStatus(notifyUserStatusMes *message.NotifyUserStatusMes) {

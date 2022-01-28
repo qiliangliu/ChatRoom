@@ -94,6 +94,12 @@ func (this *UserProcessor) Login(userId int, userPwd string) (err error) {
 	//根据响应消息，客户端做出响应的显示
 	if loginResMes.Code == 100 { //登录成功我们循环显示二级菜单
 		fmt.Println("登录成功")
+		//初始化CurUser
+		CurUser.Conn = conn
+		CurUser.UserId = userId
+		CurUser.UserName = loginMes.UserName
+		CurUser.UserStatus = message.UserOnline
+
 		fmt.Println("当前在线用户列表如下：")
 		for _, v := range loginResMes.UserList {
 			fmt.Println("用户id：\t", v)
@@ -104,8 +110,6 @@ func (this *UserProcessor) Login(userId int, userPwd string) (err error) {
 			}
 			onlineUsers[v] = user
 		}
-		fmt.Println("###########################\n")
-
 		go acceptServerMes(conn)
 		showmenu()
 	} else {

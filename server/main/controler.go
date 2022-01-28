@@ -28,6 +28,11 @@ func (this *Controler) ServerProcessMes(mes *message.Message) (err error) {
 			Conn: this.Conn,
 		}
 		err = userProcessor.ServerProcessRegister(mes)
+	case message.ShortMesType:
+		fmt.Println("收到短消息：", mes)
+		shortMesProcess := &processor.ShortMesProcess{}
+		shortMesProcess.PushGroupMes(mes)
+
 	default:
 		fmt.Println("消息类型不存在，无法处理")
 	}

@@ -18,27 +18,32 @@ func showmenu() {
 	for {
 		//接受用户的操作信息
 		var key int
-		fmt.Println("---------------恭喜xxx登陆聊天系统---------------")
-		fmt.Println("\t\t\t1 显示在线列表")
-		fmt.Println("\t\t\t2 发送消息")
-		fmt.Println("\t\t\t3 信息列表")
-		fmt.Println("\t\t\t4 退出系统")
-		fmt.Println("\t\t\t请输入<1~4>")
+		fmt.Println("---------------恭喜登陆聊天系统---------------")
+		fmt.Println("\t\t1 显示在线列表")
+		fmt.Println("\t\t2 发送消息")
+		fmt.Println("\t\t3 信息列表")
+		fmt.Println("\t\t4 退出系统")
+		fmt.Println("\t\t请输入<1~4>")
 		fmt.Scanf("%d\n", &key)
+
+		var content string
+		shortMesProcessor := &ShortMesProcessor{}
 
 		switch key {
 		case 1:
-			fmt.Println("\t\t\t1 显示在线列表")
+			fmt.Println("\t\t1 显示在线列表")
 			outputOnlineUser()
 		case 2:
-			fmt.Println("\t\t\t2 发送消息")
+			fmt.Println("\t\t你要对大家说什么：）")
+			fmt.Scanf("%s\n", &content)
+			_ = shortMesProcessor.SendGroupMes(content)
 		case 3:
-			fmt.Println("\t\t\t3 信息列表")
+			fmt.Println("\t\t3 信息列表")
 		case 4:
-			fmt.Println("\t\t\t4 退出系统")
+			fmt.Println("\t\t4 退出系统")
 			os.Exit(0)
 		default:
-			fmt.Println("\t\t\t输入有误，请重新输入")
+			fmt.Println("\t\t输入有误，请重新输入")
 		}
 	}
 }
@@ -51,7 +56,6 @@ func acceptServerMes(Conn net.Conn) {
 	for {
 		fmt.Println("客户端正在等待读取服务器发送的消息")
 		mes, err := tf.ReadPkg()
-		fmt.Println("$$$$$$$$$$$$$$$$$$$$$\n")
 		if err != nil {
 			fmt.Println("tf.ReadPkg() error: ", err)
 			return
@@ -68,6 +72,8 @@ func acceptServerMes(Conn net.Conn) {
 			}
 			updateUserStatus(&notifyUserStatusMes)
 			outputOnlineUser()
+		case message.ShortMesType: //有短消息来了
+			outPutGroupMes(&mes)
 		default:
 			fmt.Println("服务器端返回了未知的消息类型")
 		}
